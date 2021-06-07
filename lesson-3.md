@@ -219,3 +219,92 @@ b. usermod -g -маленькое
 
 по пунктам команды текстом.
 где команд нет, но нужно показать действие, присылаем скриншот.
+
+## Домашняя работа
+
+```text
+ssh a@192.168.1.56
+```
+
+1. Управление пользователями:
+a. создать пользователя, используя утилиту useradd;
+```text
+a@gb-udt:~$ sudo useradd tuser1
+# tuser1:!:18785:0:99999:7:::
+a@gb-udt:~$ su tuser1
+Password:
+su: Authentication failure
+a@gb-udt:~$ sudo passwd tuser1
+New password:
+Retype new password:
+passwd: password updated successfully
+# tuser1:$6$YVyHCYs7qxeQgj3e$e/UoPku/0Rr2mJ5mNtEw3K6ng9Y47ktGGPiE.iU71cavWa6aSu0ZWOWPRaAPT8LEDFm.N9et4zGLD/C6cqz/H/:18785:0:99999:7:::
+a@gb-udt:~$ su tuser1
+Password:
+$ ll # /bin/sh
+sh: 1: ll: not found
+$
+```
+b. удалить пользователя, используя утилиту userdel;
+```text
+a@gb-udt:~$ sudo userdel tuser1
+```
+c. создать пользователя в ручном режиме.
+```text
+a@gb-udt:~$ sudo adduser tuser2
+Adding user `tuser2' ...
+Adding new group `tuser2' (1001) ...
+Adding new user `tuser2' (1001) with group `tuser2' ...
+Creating home directory `/home/tuser2' ...
+Copying files from `/etc/skel' ...
+New password:
+Retype new password:
+passwd: password updated successfully
+Changing the user information for tuser2
+Enter the new value, or press ENTER for the default
+        Full Name []:
+        Room Number []:
+        Work Phone []:
+        Home Phone []:
+        Other []:
+Is the information correct? [Y/n] Y
+a@gb-udt:~$ su tuser2
+Password:
+tuser2@gb-udt:/home/a$ cd ~
+tuser2@gb-udt:~$ ll
+total 20
+drwxr-xr-x 2 tuser2 tuser2 4096 июн  7 23:01 ./
+drwxr-xr-x 4 root   root   4096 июн  7 23:01 ../
+-rw-r--r-- 1 tuser2 tuser2  220 июн  7 23:01 .bash_logout
+-rw-r--r-- 1 tuser2 tuser2 3771 июн  7 23:01 .bashrc
+-rw-r--r-- 1 tuser2 tuser2  807 июн  7 23:01 .profile
+tuser2@gb-udt:~$ pwd
+/home/tuser2
+```
+2. Управление группами: 
+a. создать группу с использованием утилит и в ручном режиме;
+   `sudo groupadd tgroup2`
+b. попрактиковаться в смене групп у пользователей;
+```text
+a@gb-udt:~$ sudo usermod -g tgroup2 tuser2
+# /tmp/passwd
+# tuser2:x:1001:1002:,,,:/home/tuser2:/bin/bash
+# /tmp/group
+# tuser2:x:1001:
+# tgroup2:x:1002:
+```
+c. добавить пользователя в группу, не меняя основной;
+```text
+a@gb-udt:~$ sudo usermod -G tuser2 tuser2
+# /etc/group
+# tuser2:x:1001:tuser2
+# tgroup2:x:1002:
+```
+d. удалить пользователя из группы.
+```text
+a@gb-udt:~$ sudo deluser tuser2 tuser2
+Removing user `tuser2' from group `tuser2' ...
+Done.
+# /etc/group
+# tuser2:x:1001:a
+```
