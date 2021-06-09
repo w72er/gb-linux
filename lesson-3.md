@@ -170,7 +170,7 @@ user1 ALL=adduser # может добавлять пользователя.
 %sudo ...
 ```
 
-`sudo edit`, `sudo li`
+`sudo sudoedit`, `sudo visudo`
 
 `sudoedit /etc/sudoers` - проверит корректность новых настроек.
 
@@ -295,7 +295,7 @@ a@gb-udt:~$ sudo usermod -g tgroup2 tuser2
 ```
 c. добавить пользователя в группу, не меняя основной;
 ```text
-a@gb-udt:~$ sudo usermod -G tuser2 tuser2
+a@gb-udt:~$ sudo usermod -aG tuser2 tuser2
 # /etc/group
 # tuser2:x:1001:tuser2
 # tgroup2:x:1002:
@@ -307,4 +307,85 @@ Removing user `tuser2' from group `tuser2' ...
 Done.
 # /etc/group
 # tuser2:x:1001:a
+```
+
+3. Добавить пользователя, имеющего право выполнять команды/действия 
+от имени суперпользователя.
+Сделать так, чтобы `sudo` не требовал пароль для выполнения команд.
+```text
+# -G имя дополнительной группы, -a - добавить в дополнительную
+# группу, не исключая из основной.
+a@gb-udt:~$ sudo usermod -aG sudo tuser1
+a@gb-udt:~$ sudo cat /etc/group | grep sudo
+sudo:x:27:a,tuser1
+
+a@gb-udt:~$ su - tuser1 
+Password: 
+To run a command as administrator (user "root"), use "sudo <command>".
+See "man sudo_root" for details.
+
+tuser1@gb-udt:~$ sudo cat /etc/passwd
+[sudo] password for tuser1: 
+root:x:0:0:root:/root:/bin/bash
+
+tuser1@gb-udt:~$ sudo sudoedit /etc/sudoers
+sudo: sudoedit doesn't need to be run via sudo
+# пользователей добавляем после sudo% - иначе не работает
+# %sudo	ALL=(ALL:ALL) ALL
+#
+# tuser1  ALL=(ALL) NOPASSWD:ALL
+```
+
+
+4. * Используя дополнительные материалы, выдать одному из созданных 
+пользователей право на выполнение ряда команд, требующих прав
+суперпользователя (команды выбираем на своё усмотрение). 
+
+```text
+a@gb-udt:~$ which adduser
+/usr/sbin/adduser
+a@gb-udt:~$ sudo adduser odmin
+a@gb-udt:~$ sudo visudo /etc/sudoers
+a@gb-udt:~$ sudo visudo /etc/sudoers
+>>> /etc/sudoers: syntax error near line 34 <<<
+What now? 
+a@gb-udt:~$ sudo cat /etc/sudoers | grep odmin
+odmin   ALL= /bin/systemctl, /usr/sbin/adduser
+
+
+a@gb-udt:~$ su - odmin 
+Password: 
+odmin@gb-udt:~$ systemctl status sshd
+● ssh.service - OpenBSD Secure Shell server
+     Loaded: loaded (/lib/systemd/system/ssh.service; enabled; vendor preset: e>
+     Active: active (running) since Tue 2021-06-08 20:19:48 +07; 59min ago
+       Docs: man:sshd(8)
+             man:sshd_config(5)
+    Process: 623 ExecStartPre=/usr/sbin/sshd -t (code=exited, status=0/SUCCESS)
+   Main PID: 637 (sshd)
+      Tasks: 1 (limit: 2315)
+     Memory: 2.4M
+     CGroup: /system.slice/ssh.service
+             └─637 sshd: /usr/sbin/sshd -D [listener] 0 of 10-100 startups
+
+Warning: some journal files were not opened due to insufficient permissions.
+odmin@gb-udt:~$ sudo adduser tuser3
+[sudo] password for odmin: 
+Adding user `tuser3' ...
+Adding new group `tuser3' (1004) ...
+Adding new user `tuser3' (1004) with group `tuser3' ...
+Creating home directory `/home/tuser3' ...
+Copying files from `/etc/skel' ...
+New password: 
+Retype new password: 
+passwd: password updated successfully
+Changing the user information for tuser3
+Enter the new value, or press ENTER for the default
+	Full Name []: 
+	Room Number []: 
+	Work Phone []: 
+	Home Phone []: 
+	Other []: 
+Is the information correct? [Y/n] 
+
 ```
