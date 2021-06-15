@@ -167,7 +167,83 @@ exit
 5. * Создать в директории для совместной работы поддиректорию для
 обмена файлами, но чтобы удалять файлы могли только их создатели.
 
+Решить с помощью указания опции u=w, g=r не получится, поскольку
+группа не сможет редактировать, так как `w` - как для редактирования,
+так и для удаления.
+
+А вот использование специального бита - sticky, который говорит, что
+файл может удалить лишь владелец — нам подходит.
+
+```text
+petr-dev@gb-udt:~$ su - ivan-dev 
+Password: 
+ivan-dev@gb-udt:~$ mkdir /var/dev-share/file-share
+ivan-dev@gb-udt:~$ ls -l /var/dev-share/
+total 8
+-rw-rw-r-- 1 ivan-dev developer    9 июн 14 23:36 dev.txt
+drwxrwsr-x 2 ivan-dev developer 4096 июн 15 12:43 file-share
+-rw-rw-r-- 1 ivan-dev ivan-dev     0 июн 14 23:30 ivan.txt
+ivan-dev@gb-udt:~$ chmod +t /var/dev-share/file-share/
+ivan-dev@gb-udt:~$ ls -l /var/dev-share/
+total 8
+-rw-rw-r-- 1 ivan-dev developer    9 июн 14 23:36 dev.txt
+drwxrwsr-t 2 ivan-dev developer 4096 июн 15 12:43 file-share
+-rw-rw-r-- 1 ivan-dev ivan-dev     0 июн 14 23:30 ivan.txt
+ivan-dev@gb-udt:~$ echo 'shared-file-of-ivan' > /var/dev-share/file-share/shared-file-of-ivan.txt
+ivan-dev@gb-udt:~$ exit
+logout
+petr-dev@gb-udt:~$ su - petr-dev 
+Password: 
+petr-dev@gb-udt:~$ echo 'thx ivan' >> /var/dev-share/file-share/shared-file-of-ivan.txt
+petr-dev@gb-udt:~$ cat /var/dev-share/file-share/shared-file-of-ivan.txt
+shared-file-of-ivan
+thx ivan
+petr-dev@gb-udt:~$ rm /var/dev-share/file-share/shared-file-of-ivan.txt
+rm: cannot remove '/var/dev-share/file-share/shared-file-of-ivan.txt': Operation not permitted
+petr-dev@gb-udt:~$ exit
+logout
+petr-dev@gb-udt:~$ su - ivan-dev 
+Password: 
+ivan-dev@gb-udt:~$ rm /var/dev-share/file-share/shared-file-of-ivan.txt
+ivan-dev@gb-udt:~$ ls -l /var/dev-share/file-share/
+total 0
+```
+
 6. * Создать директорию, в которой есть несколько файлов. Сделать так,
 чтобы открыть файлы можно было, только зная имя файла, а через ls
 список файлов посмотреть было нельзя.
+
+Если убрать из директории право на выполнение, то нельзя получить
+список файлов внутри директории.
+
+```text
+a@gb-udt:/tmp$ ls -al /tmp/ninja-files/
+ls: cannot access '/tmp/ninja-files/file1.txt': Permission denied
+ls: cannot access '/tmp/ninja-files/..': Permission denied
+ls: cannot access '/tmp/ninja-files/.': Permission denied
+ls: cannot access '/tmp/ninja-files/file2.txt': Permission denied
+total 0
+d????????? ? ? ? ?            ? .
+d????????? ? ? ? ?            ? ..
+-????????? ? ? ? ?            ? file1.txt
+-????????? ? ? ? ?            ? file2.txt
+```
+
+То есть просто забрать права на x выполнение папки не получится,
+как и забрав все права у файлов в папке. Так как x - это получение
+информации из `inode`.
+
+Перечитал документацию по правам папки — надо забрать право `r`.
+```text
+a@gb-udt:/tmp$ mkdir ninja-files
+a@gb-udt:/tmp$ chmod -r ninja-files
+a@gb-udt:/tmp$ ls -l .
+d-wx-wx--x 2 a    a    4096 июн 15 13:17 ninja-files
+drwx------ 3 root root 4096 июн 14 09:41 snap.snap-store
+a@gb-udt:/tmp$ echo 'file-2.txt' > /tmp/ninja-files/file2.txt
+a@gb-udt:/tmp$ ls /tmp/ninja-files/
+ls: cannot open directory '/tmp/ninja-files/': Permission denied
+a@gb-udt:/tmp$ cat /tmp/ninja-files/file2.txt
+file-2.txt
+```
 
