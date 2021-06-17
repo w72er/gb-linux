@@ -18,3 +18,9 @@ a@md:~/projects/my/gb-linux/lesson-6-hw/task-1$ cat test.txt
 IN MIXED CASES
 WITH EMPTY LINES
 ```
+
+Команда `sed` концептуально строится:
+* на адресе — правилу по выбору строки или символу для редактирования
+* на команде, которая будет применена к адресу.
+Подробнее смотри в https://losst.ru/komanda-sed-linux
+
