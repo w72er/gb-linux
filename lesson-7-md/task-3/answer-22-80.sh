@@ -46,4 +46,3 @@ iptables -A OUTPUT -p tcp -m tcp --sport 22 -j ACCEPT
 
 iptables -A INPUT -p tcp -m tcp --dport 80 -j ACCEPT
 iptables -A OUTPUT -p tcp -m tcp --sport 80 -j ACCEPT
-
